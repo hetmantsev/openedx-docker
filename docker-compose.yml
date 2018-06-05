@@ -23,149 +23,26 @@ services:
       - ./data/mysql:/var/lib/mysql
     env_file: ./config/mysql/auth.env
 
-  elasticsearch:
-    image: elasticsearch:1.5.2
-    environment:
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-      - "cluster.name=openedx"
-      - "bootstrap.memory_lock=true"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    restart: "unless-stopped"
-    volumes:
-      - ./data/elasticsearch:/usr/share/elasticsearch/data
-
-  nginx:
-    image: nginx:1.13
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    volumes:
-      - ./config/nginx:/etc/nginx/conf.d/
-      - ./data/lms:/openedx/data/lms:ro
-      - ./data/cms:/openedx/data/cms:ro
-
   rabbitmq:
     image: rabbitmq:3.6.10
     volumes:
       - ./data/rabbitmq:/var/lib/rabbitmq
 
-  # Simple SMTP server
-  smtp:
-    image: namshi/smtp
-    restart: unless-stopped
-
-  ############# Forum
-
-  forum:
-    image: regis/openedx-forum:ginkgo
-    build:
-      context: ./forum
-    environment:
-      API_KEY: "forumapikey"
-      SEARCH_SERVER: "http://elasticsearch:9200"
-      MONGOHQ_URL: "mongodb://mongodb/cs_comments_service"
-    restart: unless-stopped
-    depends_on:
-      - elasticsearch
-      - mongodb
-
   ############# LMS and CMS
-
-  lms:
-    image: regis/openedx:ginkgo
-    build:
-      context: ./openedx
-    environment:
-      SERVICE_VARIANT: lms
-    restart: unless-stopped
-    volumes:
-      - ./config/openedx:/openedx/config
-      - ./data/lms:/openedx/data
-    depends_on:
-      - elasticsearch
-      - forum
-      - memcached
-      - mongodb
-      - mysql
-      - rabbitmq
-      - smtp
-
-  cms:
-    image: regis/openedx:ginkgo
-    build:
-      context: ./openedx
-    environment:
-      SERVICE_VARIANT: cms
-    restart: unless-stopped
-    volumes:
-      - ./config/openedx:/openedx/config
-      - ./data/cms:/openedx/data
-    depends_on:
-      - memcached
-      - mongodb
-      - mysql
-      - rabbitmq
-      - smtp
-
-  ############# LMS and CMS workers
-
-  # We could probably create one service per queue here. For small instances, it is not necessary.
-  lms_worker:
-    image: regis/openedx:ginkgo
-    build:
-      context: ./openedx
-    environment:
-      SERVICE_VARIANT: lms
-    command: ./manage.py lms celery worker --loglevel=info --hostname=edx.lms.core.default.%%h --maxtasksperchild 100
-    restart: unless-stopped
-    environment:
-      C_FORCE_ROOT: "1" # run celery tasks as root #nofear
-    volumes:
-      - ./config/openedx:/openedx/config
-      - ./data/lms_worker:/openedx/data
-    depends_on:
-      - lms
-
-  cms_worker:
-    image: regis/openedx:ginkgo
-    build:
-      context: ./openedx
-    environment:
-      SERVICE_VARIANT: cms
-    command: ./manage.py cms celery worker --loglevel=info --hostname=edx.cms.core.default.%%h --maxtasksperchild 100
-    restart: unless-stopped
-    environment:
-      C_FORCE_ROOT: "1" # run celery tasks as root #nofear
-    volumes:
-      - ./config/openedx:/openedx/config
-      - ./data/cms_worker:/openedx/data
-    depends_on:
-      - cms
-
-  ############# Xqueue: external grading of Open edX problems
-  xqueue:
-    image: regis/openedx-xqueue:ginkgo
-    build:
-      context: ./xqueue
-    volumes:
-      - ./config/xqueue:/openedx/config
-      - ./data/xqueue:/openedx/data
-    restart: unless-stopped
-    depends_on:
-      - mysql
-
-  xqueue_consumer:
-    image: regis/openedx-xqueue:ginkgo
-    build:
-      context: ./xqueue
-    volumes:
-      - ./config/xqueue:/openedx/config
-      - ./data/xqueue:/openedx/data
-    restart: unless-stopped
-    # Run 12 workers per queue
-    command: ./manage.py run_consumer 12
-    depends_on:
-      - mysql
+#
+#  lms:
+#    image: regis/openedx:ginkgo
+#    build:
+#      context: ./openedx
+#    environment:
+#      SERVICE_VARIANT: lms
+#    restart: unless-stopped
+#    volumes:
+#      - ./config/openedx:/openedx/config
+#      - ./data/lms:/openedx/data
+#    depends_on:
+#      - memcached
+#      - mongodb
+#      - mysql
+#      - rabbitmq
+      
