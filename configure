@@ -115,15 +115,13 @@ def main():
             defaults = json.load(f)
 
     configurator = Configurator(silent=args.silent, **defaults).add(
-        'MYSQL_DATABASE', "openedx", 'openedx'
+        'MYSQL_DATABASE', "", 'openedx'
     ).add(
-        'MYSQL_ROOT_PASSWORD', "password", 'password'
+        'MYSQL_USERNAME', "", 'openedx'
     ).add(
-        'MYSQL_USERNAME', "openedx", 'openedx'
+        'MYSQL_PASSWORD', "", 'password',
     ).add(
-        'MYSQL_PASSWORD', "password", 'password',
-    ).add(
-        'MONGODB_DATABASE', "openedx", 'openedx'
+        'MONGODB_DATABASE', "", 'openedx'
     )
 
     # Save values
