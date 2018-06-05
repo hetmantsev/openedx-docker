@@ -21,26 +21,6 @@ configure:
 update:
 	docker-compose pull
 
-provision:
-	$(DOCKER_COMPOSE_RUN_OPENEDX) lms bash /openedx/config/provision.sh
-
-migrate-openedx:
-	$(DOCKER_COMPOSE_RUN_OPENEDX) lms bash -c "wait-for-greenlight.sh && ./manage.py lms migrate"
-	$(DOCKER_COMPOSE_RUN_OPENEDX) cms bash -c "wait-for-greenlight.sh && ./manage.py cms migrate"
-
-migrate-forum:
-	$(DOCKER_COMPOSE_RUN) forum bash -c "bundle exec rake search:initialize && \
-		bundle exec rake search:rebuild_index"
-
-migrate-xqueue:
-	$(DOCKER_COMPOSE_RUN) xqueue bash -c "./manage.py migrate"
-
-migrate: provision migrate-openedx migrate-forum migrate-xqueue
-
-assets:
-	$(DOCKER_COMPOSE_RUN_OPENEDX) lms paver update_assets lms --settings=$(EDX_PLATFORM_SETTINGS)
-	$(DOCKER_COMPOSE_RUN_OPENEDX) cms paver update_assets cms --settings=$(EDX_PLATFORM_SETTINGS)
-
 ##################### Running
 
 up:
@@ -52,45 +32,6 @@ daemon:
 
 stop:
 	docker-compose stop
-
-##################### Extra
-
-import-demo-course:
-	$(DOCKER_COMPOSE_RUN_OPENEDX) cms /bin/bash -c "git clone https://github.com/edx/edx-demo-course ../edx-demo-course && git -C ../edx-demo-course checkout open-release/ginkgo.master && python ./manage.py cms import ../data ../edx-demo-course"
-
-create-staff-user:
-	$(DOCKER_COMPOSE_RUN_OPENEDX) lms /bin/bash -c "./manage.py lms manage_user --superuser --staff ${USERNAME} ${EMAIL} && ./manage.py lms changepassword ${USERNAME}"
-
-
-##################### Development
-
-lms:
-	$(DOCKER_COMPOSE_RUN_LMS) bash
-cms:
-	$(DOCKER_COMPOSE_RUN_CMS) bash
-
-lms-shell:
-	$(DOCKER_COMPOSE_RUN_OPENEDX) lms ./manage.py lms shell
-cms-shell:
-	$(DOCKER_COMPOSE_RUN_OPENEDX) cms ./manage.py cms shell
-
-
-#################### Android app
-
-android:
-	docker-compose -f docker-compose-android.yml run --rm android
-	@echo "Your APK file is ready: ./data/android/edx-prod-debuggable-2.14.0.apk"
-
-android-release:
-	# Note that this requires that you edit ./config/android/gradle.properties
-	docker-compose -f docker-compose-android.yml run --rm android ./gradlew assembleProdRelease
-
-android-build:
-	docker build -t regis/openedx-android:latest android/
-android-push:
-	docker push regis/openedx-android:latest
-android-dockerhub: android-build android-push
-
 
 #################### Deploying to docker hub
 
