@@ -32,10 +32,6 @@ daemon:
 
 stop:
 	docker-compose stop
-	
-remove:
-	docker kill $(docker ps -q)
-	docker rm $(docker ps -a -q)
 
 #################### Deploying to docker hub
 
