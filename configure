@@ -116,6 +116,8 @@ def main():
 
     configurator = Configurator(silent=args.silent, **defaults).add(
         'MYSQL_DATABASE', "openedx", 'openedx'
+    .add(
+        'MYSQL_ROOT_PASSWORD', "password", 'password'
     ).add(
         'MYSQL_USERNAME', "openedx", 'openedx'
     ).add(
