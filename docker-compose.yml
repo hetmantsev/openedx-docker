@@ -21,7 +21,9 @@ services:
     restart: unless-stopped
     volumes:
       - ./data/mysql:/var/lib/mysql
-    env_file: ./config/mysql/auth.env
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+    #env_file: ./config/mysql/auth.env
 
   rabbitmq:
     image: rabbitmq:3.6.10
