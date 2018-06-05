@@ -119,7 +119,7 @@ def main():
     ).add(
         'MYSQL_USERNAME', "", 'openedx'
     ).add(
-        'MYSQL_PASSWORD', "", 'password',
+        'MYSQL_PASSWORD', "", random_string(8),
     ).add(
         'MONGODB_DATABASE', "", 'openedx'
     )
